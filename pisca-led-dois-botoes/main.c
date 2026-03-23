@@ -40,7 +40,7 @@ bool timer_callback_a(struct repeating_timer *t) {
 
     gpio_put(LED_amarelo, !gpio_get_out_level(LED_amarelo));
 
-    tempo_amarelo += 500;
+    tempo_amarelo += 250;
 
     if (tempo_amarelo >= 2000) {
 
@@ -67,7 +67,7 @@ bool timer_callback_v(struct repeating_timer *t) {
 
     gpio_put(LED_verde, !gpio_get_out_level(LED_verde));
 
-    tempo_verde += 200;
+    tempo_verde += 100;
 
     if (tempo_verde >= 1000) {
 
@@ -126,10 +126,10 @@ int main(){
             if (!verde_ativo){
                 tempo_verde = 0;
 
-                gpio_put(LED_verde, 1);
+             
 
                 add_repeating_timer_ms(
-                        200,
+                        100,
                         timer_callback_v,
                         NULL,
                         &timer_v
@@ -142,12 +142,12 @@ int main(){
             button_flag_a = false;
         
             if (!amarelo_ativo){
-                tempo_amarelo = 0;
+              
 
                 gpio_put(LED_amarelo, 1);
 
                 add_repeating_timer_ms(
-                        500,
+                        250,
                         timer_callback_a,
                         NULL,
                         &timer_a
