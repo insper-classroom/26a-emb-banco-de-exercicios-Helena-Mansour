@@ -12,27 +12,27 @@ const int BTN_vermelho = 21;
 const int BTN_amarelo = 19;
 const int BTN_verde = 20;
 
-// CORRIGIDO: tamanho 3
+// Arrays (mantidos)
 const int LEDS[3] = {LED_amarelo, LED_verde, LED_vermelho};
 const int BTNS[3] = {BTN_amarelo, BTN_verde, BTN_vermelho};
 
-// CORRIGIDO: sequência sem "3"
-const int sequencia[10] = {0,1, 2,0,1,0,2,0,1,0};
+// Sequência correta
+const int sequencia[10] = {0,1,2, 0,1,0, 2,0,1,0};
 
 volatile int btn_pressionado = -1;
 
+// ✅ CORREÇÃO PRINCIPAL (sem loop na ISR)
 void btn_callback(uint gpio, uint32_t events) {
     if (events & GPIO_IRQ_EDGE_FALL) {
-        for (int i = 0; i < 3; i++) { // CORRIGIDO
-            if (gpio == BTNS[i]) {
-                btn_pressionado = i;
-            }
-        }
+
+        if (gpio == BTN_amarelo) btn_pressionado = 0;
+        else if (gpio == BTN_verde) btn_pressionado = 1;
+        else if (gpio == BTN_vermelho) btn_pressionado = 2;
     }
 }
 
 void apaga_todos() {
-    for (int i = 0; i < 3; i++) gpio_put(LEDS[i], 0); // CORRIGIDO
+    for (int i = 0; i < 3; i++) gpio_put(LEDS[i], 0);
 }
 
 void acende_led(int idx) {
@@ -49,29 +49,27 @@ void mostra_sequencia(int rodada) {
     }
 }
 
-
-
 int main() {
     stdio_init_all();
 
-    for (int i = 0; i < 3; i++) { // CORRIGIDO
+    for (int i = 0; i < 3; i++) {
         gpio_init(LEDS[i]);
         gpio_set_dir(LEDS[i], GPIO_OUT);
         gpio_put(LEDS[i], 0);
     }
 
-    for (int i = 0; i < 3; i++) { // CORRIGIDO
+    for (int i = 0; i < 3; i++) {
         gpio_init(BTNS[i]);
         gpio_set_dir(BTNS[i], GPIO_IN);
         gpio_pull_up(BTNS[i]);
     }
 
     gpio_set_irq_enabled_with_callback(BTNS[0], GPIO_IRQ_EDGE_FALL, true, &btn_callback);
-    for (int i = 1; i < 3; i++) { // CORRIGIDO
+    for (int i = 1; i < 3; i++) {
         gpio_set_irq_enabled(BTNS[i], GPIO_IRQ_EDGE_FALL, true);
     }
 
-    // CORRIGIDO: botão verde = índice 1
+    // Espera botão verde iniciar
     while (1) {
         if (btn_pressionado == 1) {
             btn_pressionado = -1;
@@ -88,10 +86,12 @@ int main() {
         int acertou = 1;
 
         for (int i = 0; i < rodada; i++) {
+
             btn_pressionado = -1;
 
             while (btn_pressionado == -1) {
-                tight_loop_contents();}
+                tight_loop_contents();
+            }
 
             int b = btn_pressionado;
             btn_pressionado = -1;
@@ -111,7 +111,6 @@ int main() {
 
     printf("Points %d\n", pnts);
 
-    // CORRIGIDO
     for (int i = 0; i < pnts; i++) {
         for (int j = 0; j < 3; j++) gpio_put(LEDS[j], 1);
         sleep_ms(200);
