@@ -3,6 +3,9 @@ add_executable(pisca-led-dois-botoes
 )
 
 target_link_libraries(pisca-led-dois-botoes
-                     hardware_adc
-                     pico_stdlib )
+                      pico_stdlib
+                hardware_adc
+                hardware_gpio
+                hardware_timer )
+
 pico_add_extra_outputs(pisca-led-dois-botoes)
