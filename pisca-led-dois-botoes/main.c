@@ -44,7 +44,7 @@ bool timer_callback_a(struct repeating_timer *t) {
 
     if (tempo_amarelo >= 2000) {
 
-        gpio_put(LED_amarelo, 0);
+        gpio_put(LED_amarelo, 1);
 
         amarelo_ativo = false;
         tempo_amarelo = 0;
@@ -71,7 +71,7 @@ bool timer_callback_v(struct repeating_timer *t) {
 
     if (tempo_verde >= 1000) {
 
-        gpio_put(LED_verde, 0);
+        gpio_put(LED_verde, 1);
         
 
         verde_ativo = false;
