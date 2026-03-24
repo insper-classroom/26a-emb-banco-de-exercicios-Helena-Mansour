@@ -7,10 +7,10 @@
 #include "hardware/timer.h"
 #include "pico/stdlib.h"
 
-const int BTN_PIN_G = 20;
+const int BTN_PIN_G = 28;
 
-const int LED_PIN_B = 14;
-const int LED_PIN_Y = 17;
+const int LED_PIN_B = 9;
+const int LED_PIN_Y = 5;
 
 
 //botao amarelo precionado
