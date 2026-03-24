@@ -13,18 +13,25 @@ const int BTN_PIN_Y = 19;
 const int LED_PIN_G = 15;
 const int LED_PIN_Y = 14;
 
+//botao verde precionado
 volatile bool btn_g_press = false;
+
+//botao amarelo precionado
 volatile bool btn_y_press = false;
+
+//hora do botao piscar
 volatile bool pisca_y = false;
 volatile bool pisca_g = false;
+
+//tempo acabou
 volatile bool alarme_g = false;
 volatile bool alarme_y = false;
 
 
 void btn_callback(uint gpio, uint32_t events) {
-    if(events == 0x4){
+    if(events == 0x4){ //se o botao é precionado
         if(gpio == BTN_PIN_G){
-            btn_g_press = true;
+            btn_g_press = true; //marca a flag
         }
         if(gpio == BTN_PIN_Y){
             btn_y_press = true;
@@ -87,7 +94,7 @@ int main() {
     bool rodando_y = false;
 
     while (1) {
-        if(btn_g_press && !rodando_g){
+        if(btn_g_press && !rodando_g){ //precionou botao verde
             btn_g_press = false;
             rodando_g = true;
             gpio_put(LED_PIN_G, 1);
@@ -98,13 +105,13 @@ int main() {
             pisca_g = false;
             led_estado_g = !led_estado_g;
             gpio_put(LED_PIN_G, led_estado_g);
-        }
-        if(alarme_g){
+        } //para piscar
+        if(alarme_g){ //tempo acabou
             alarme_g = false;
             gpio_put(LED_PIN_G, 0);
             cancel_repeating_timer(&time_g);
             rodando_g = false;
-            if(rodando_y){
+            if(rodando_y){ // para o amarelo tambem
                 rodando_y = false;
                 gpio_put(LED_PIN_Y,0);
                 cancel_repeating_timer(&time_y);
