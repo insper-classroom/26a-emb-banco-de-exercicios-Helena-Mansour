@@ -4,14 +4,14 @@
 
 
 // LEDs 
-const int LED_vermelho = 16;
-const int LED_amarelo = 14;
-const int LED_verde = 15;
+const int LED_vermelho = 13;
+const int LED_amarelo = 9;
+const int LED_verde = 5;
 
 // Botões 
-const int BTN_vermelho = 21;
-const int BTN_amarelo = 19;
-const int BTN_verde = 20;
+const int BTN_vermelho = 20;
+const int BTN_amarelo = 26;
+const int BTN_verde = 28;
 
 
 // MAPEAMENTO DE CORES
@@ -213,6 +213,8 @@ int main() {
 
         sleep_ms(200);
     }
+
+    
 
     // fim do programa (loop infinito)
     while (1) {}
