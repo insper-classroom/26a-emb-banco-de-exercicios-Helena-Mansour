@@ -1,172 +1,141 @@
-#include <stdio.h>              
-#include "hardware/gpio.h"     
-#include "pico/stdlib.h"       
 
-// ─── Pinos ───────────────────────────────────────────────────────────────────
 
-// "LED Verde: pisca a cada 200ms" — pino 15
-const int LED_amarelo = 14;
-const int LED_verde   = 15;
+#include <stdio.h>
 
-// "Botão Verde → inicia o piscar do LED Verde" — pinos dos botões
-const int BTN_amarelo = 19;
-const int BTN_verde   = 20;
+#include "hardware/adc.h"
+#include "hardware/gpio.h"
+#include "hardware/timer.h"
+#include "pico/stdlib.h"
 
-// ─── Flags de botão ──────────────────────────────────────────────────────────
-// volatile: avisa o compilador que essas variáveis podem mudar fora do fluxo
-// normal (dentro de interrupções), impedindo otimizações incorretas
-volatile bool button_flag_a = false;
-volatile bool button_flag_v = false;
+const int BTN_PIN_G = 20;
+const int BTN_PIN_Y = 19;
 
-// ─── Estruturas dos timers ───────────────────────────────────────────────────
-// Um timer para cada LED, pois cada um tem frequência diferente:
-// "LED Verde: pisca a cada 200ms / LED Amarelo: pisca a cada 500ms"
-struct repeating_timer timer_v;
-struct repeating_timer timer_a;
+const int LED_PIN_G = 15;
+const int LED_PIN_Y = 14;
 
-// ─── Estado dos LEDs ─────────────────────────────────────────────────────────
-// Controla se cada LED está no seu período ativo de piscar:
-// "LED Verde: 1000ms / LED Amarelo: 2000ms"
-volatile bool verde_ativo   = false;
-volatile bool amarelo_ativo = false;
+volatile bool btn_g_press = false;
+volatile bool btn_y_press = false;
+volatile bool pisca_y = false;
+volatile bool pisca_g = false;
+volatile bool alarme_g = false;
+volatile bool alarme_y = false;
 
-// Acumula o tempo decorrido para saber quando parar de piscar
-volatile int tempo_verde   = 0;
-volatile int tempo_amarelo = 0;
 
-// ─── Interrupção dos botões ──────────────────────────────────────────────────
-// "Deve trabalhar com interrupções nos botões"
-// Chamada automaticamente pelo hardware quando um botão é pressionado.
-// Apenas levanta uma flag — o processamento real acontece no main,
-// pois interrupções devem ser curtas e rápidas.
 void btn_callback(uint gpio, uint32_t events) {
-    if (events & GPIO_IRQ_EDGE_FALL) {  // borda de descida = botão pressionado
-        if (gpio == BTN_amarelo) button_flag_a = true;
-        if (gpio == BTN_verde)   button_flag_v = true;
-    }
-}
-
-// ─── Timer do LED Amarelo ────────────────────────────────────────────────────
-// "Utilizar timers para o controle de tempo" — chamado a cada 500ms pelo SDK.
-// Cada chamada inverte o estado do LED (piscar) e acumula o tempo decorrido.
-bool timer_callback_a(struct repeating_timer *t) {
-
-    // Inverte o estado do LED → produz o piscar de 500ms
-    gpio_put(LED_amarelo, !gpio_get_out_level(LED_amarelo));
-
-    tempo_amarelo += 500;  // acumula 500ms a cada disparo do timer
-
-    // "LED Amarelo: permanece ativo por 2000ms"
-    if (tempo_amarelo >= 2000) {
-
-        // "Os LEDs devem parar de piscar apagados"
-        gpio_put(LED_amarelo, 0);
-        amarelo_ativo = false;
-        tempo_amarelo = 0;
-
-        // "Se dois LEDs estiverem piscando simultaneamente, quando o tempo
-        //  de um deles terminar, ambos devem parar imediatamente"
-        if (verde_ativo) {
-            cancel_repeating_timer(&timer_v);  // para o timer do verde
-            gpio_put(LED_verde, 0);            // apaga o verde
-            verde_ativo  = false;
-            tempo_verde  = 0;
+    if(events == 0x4){
+        if(gpio == BTN_PIN_G){
+            btn_g_press = true;
         }
-
-        return false;  // retornar false cancela este timer automaticamente
-    }
-
-    return true;  // continua repetindo
-}
-
-// ─── Timer do LED Verde ──────────────────────────────────────────────────────
-// Mesma lógica do amarelo, mas com "200ms de período e 1000ms de duração"
-bool timer_callback_v(struct repeating_timer *t) {
-
-    // Inverte o estado do LED → produz o piscar de 200ms
-    gpio_put(LED_verde, !gpio_get_out_level(LED_verde));
-
-    tempo_verde += 200;  // acumula 200ms a cada disparo do timer
-
-    // "LED Verde: permanece ativo por 1000ms"
-    if (tempo_verde >= 1000) {
-
-        // "Os LEDs devem parar de piscar apagados"
-        gpio_put(LED_verde, 0);
-        verde_ativo = false;
-        tempo_verde = 0;
-
-        // "Se dois LEDs estiverem piscando simultaneamente, quando o tempo
-        //  de um deles terminar, ambos devem parar imediatamente"
-        if (amarelo_ativo) {
-            cancel_repeating_timer(&timer_a);  // para o timer do amarelo
-            gpio_put(LED_amarelo, 0);          // apaga o amarelo
-            amarelo_ativo = false;
-            tempo_amarelo = 0;
+        if(gpio == BTN_PIN_Y){
+            btn_y_press = true;
         }
-
-        return false;  // retornar false cancela este timer automaticamente
     }
-
-    return true;  // continua repetindo
 }
 
-// ─── Main ────────────────────────────────────────────────────────────────────
+bool timer_y_callback(repeating_timer_t *rt) {
+    pisca_y = true;
+    return true;
+
+}
+bool timer_g_callback(repeating_timer_t *rt) {
+    pisca_g = true;
+    return true;
+}
+
+int64_t alarm_g_callback(alarm_id_t id, void *user_data) {
+    alarme_g = true;
+    return 0;
+
+}
+
+int64_t alarm_y_callback(alarm_id_t id, void *user_data) {
+    alarme_y = true;
+    return 0;
+}
+
 int main() {
     stdio_init_all();
 
-    // Configura LEDs como saída, iniciando apagados
-    gpio_init(LED_amarelo);
-    gpio_set_dir(LED_amarelo, GPIO_OUT);
-    gpio_put(LED_amarelo, 0);
+    gpio_init(BTN_PIN_G);
+    gpio_set_dir(BTN_PIN_G, GPIO_IN);
+    gpio_pull_up(BTN_PIN_G);
+    gpio_set_irq_enabled_with_callback(BTN_PIN_G, GPIO_IRQ_EDGE_FALL, true,
+                                       &btn_callback);
 
-    gpio_init(LED_verde);
-    gpio_set_dir(LED_verde, GPIO_OUT);
-    gpio_put(LED_verde, 0);
+    gpio_init(BTN_PIN_Y);
+    gpio_set_dir(BTN_PIN_Y, GPIO_IN);
+    gpio_pull_up(BTN_PIN_Y);
+    gpio_set_irq_enabled_with_callback(BTN_PIN_Y, GPIO_IRQ_EDGE_FALL, true,
+                                       &btn_callback);
 
-    // Configura botões como entrada com pull-up interno
-    // (sem pull-up o pino flutuaria entre 0 e 1 aleatoriamente)
-    gpio_init(BTN_verde);
-    gpio_set_dir(BTN_verde, GPIO_IN);
-    gpio_pull_up(BTN_verde);
+    gpio_init(LED_PIN_G);
+    gpio_set_dir(LED_PIN_G, GPIO_OUT);
 
-    gpio_init(BTN_amarelo);
-    gpio_set_dir(BTN_amarelo, GPIO_IN);
-    gpio_pull_up(BTN_amarelo);
+    gpio_init(LED_PIN_Y);
+    gpio_set_dir(LED_PIN_Y, GPIO_OUT);
 
-    // "Deve trabalhar com interrupções nos botões"
-    // Registra btn_callback para ser chamado em borda de descida dos botões
-    gpio_set_irq_enabled_with_callback(BTN_amarelo, GPIO_IRQ_EDGE_FALL,
-                                       true, &btn_callback);
-    gpio_set_irq_enabled(BTN_verde, GPIO_IRQ_EDGE_FALL, true);
+    //volatile alarm_id_t alarm_g;
+    //volatile alarm_id_t alarm_y;
 
-    // ─── Loop principal ───────────────────────────────────────────────────
-    // "Baremetal (sem RTOS)" — o main fica em loop verificando as flags
-    // levantadas pelas interrupções dos botões
-    while (true) {
+    repeating_timer_t time_g;
+    repeating_timer_t time_y;
 
-        // "Botão Verde → inicia o piscar do LED Verde"
-        if (button_flag_v) {
-            button_flag_v = false;
+    bool led_estado_g = false;
+    bool led_estado_y = false;
 
-            if (!verde_ativo) {  // só inicia se não estiver piscando já
-                tempo_verde = 0;
-                verde_ativo = true;
-                // Inicia timer que dispara a cada 200ms para piscar o LED
-                add_repeating_timer_ms(200, timer_callback_v, NULL, &timer_v);
+    bool rodando_g = false;
+    bool rodando_y = false;
+
+    while (1) {
+        if(btn_g_press && !rodando_g){
+            btn_g_press = false;
+            rodando_g = true;
+            gpio_put(LED_PIN_G, 1);
+            add_alarm_in_ms(1000, alarm_g_callback, NULL, false);
+            add_repeating_timer_ms(200, timer_g_callback, NULL, &time_g);
+        }
+        if(pisca_g){
+            pisca_g = false;
+            led_estado_g = !led_estado_g;
+            gpio_put(LED_PIN_G, led_estado_g);
+        }
+        if(alarme_g){
+            alarme_g = false;
+            gpio_put(LED_PIN_G, 0);
+            cancel_repeating_timer(&time_g);
+            rodando_g = false;
+            if(rodando_y){
+                rodando_y = false;
+                gpio_put(LED_PIN_Y,0);
+                cancel_repeating_timer(&time_y);
             }
         }
 
-        // "Botão Amarelo → inicia o piscar do LED Amarelo"
-        if (button_flag_a) {
-            button_flag_a = false;
-
-            if (!amarelo_ativo) {  // só inicia se não estiver piscando já
-                tempo_amarelo = 0;
-                amarelo_ativo = true;
-                // Inicia timer que dispara a cada 500ms para piscar o LED
-                add_repeating_timer_ms(500, timer_callback_a, NULL, &timer_a);
+        if(btn_y_press && !rodando_y){
+            rodando_y = true;
+            btn_y_press = false;
+            gpio_put(LED_PIN_Y, 1);
+            add_alarm_in_ms(2000, alarm_y_callback, NULL, false);
+            add_repeating_timer_ms(500, timer_y_callback, NULL, &time_y);
+        }
+        if(pisca_y){
+            pisca_y = false;
+            led_estado_y = !led_estado_y;
+            gpio_put(LED_PIN_Y, led_estado_y);
+        }
+        if(alarme_y){
+            alarme_y = false;
+            gpio_put(LED_PIN_Y, 0);
+            cancel_repeating_timer(&time_y);
+            rodando_y = false;
+            if(rodando_g){
+                rodando_g = false;
+                gpio_put(LED_PIN_G,0);
+                cancel_repeating_timer(&time_g);
             }
         }
+
     }
+
+    return 0;
 }
