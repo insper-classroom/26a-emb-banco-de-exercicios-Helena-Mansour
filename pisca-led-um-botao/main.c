@@ -9,8 +9,8 @@
 
 const int BTN_PIN_G = 20;
 
-const int LED_PIN_B = 17;
-const int LED_PIN_Y = 14;
+const int LED_PIN_B = 14;
+const int LED_PIN_Y = 17;
 
 
 //botao amarelo precionado
@@ -73,15 +73,12 @@ int main() {
     bool led_estado_b = false;
     bool led_estado_y = false;
 
-    bool rodando_b = false;
-    bool rodando_y = false;
-
+  
     while (1) {
         if(btn_g_press){ //precionou botao verde
             btn_g_press = false;
 
-            rodando_b = true;
-            rodando_y = true;
+            
 
             gpio_put(LED_PIN_Y, 1);
             add_repeating_timer_ms(500, timer_y_callback, NULL, &time_y);
@@ -111,11 +108,11 @@ int main() {
             alarme = false;
             gpio_put(LED_PIN_Y, 0);
             cancel_repeating_timer(&time_y);
-            rodando_y = false;
+        
 
             gpio_put(LED_PIN_B, 0);
             cancel_repeating_timer(&time_b);
-            rodando_b = false;
+          
         }
 
     }
