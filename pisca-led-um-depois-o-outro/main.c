@@ -3,11 +3,11 @@
 #include "hardware/timer.h"
 #include "pico/stdlib.h"
 
-const int BTN_PIN_B = 18;
+const int BTN_PIN_B = 19;
+const int BTN_PIN_Y = 26;
 
-const int BTN_PIN_Y = 19;
-const int LED_PIN_B = 17;
-const int LED_PIN_Y = 14;
+const int LED_PIN_B = 14;
+const int LED_PIN_Y = 10;
 
 //flag de interrupcao 
 volatile bool btn_b_press = false;
