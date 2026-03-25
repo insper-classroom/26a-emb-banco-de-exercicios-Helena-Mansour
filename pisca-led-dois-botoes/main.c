@@ -22,8 +22,14 @@ volatile int g_fired_y = 0;
 
 void btn_callback(uint gpio, uint32_t events) {
     if (events == 0x4) {  // fall edge
-        if (gpio == BTN_PIN_G) btn_g_flag = 1;
-        if (gpio == BTN_PIN_Y) btn_y_flag = 1;
+        if (gpio == BTN_PIN_G){
+            btn_g_flag = 1;
+
+        } 
+        if (gpio == BTN_PIN_Y){
+            btn_y_flag = 1;
+
+        } 
     }
 }
 
