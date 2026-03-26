@@ -5,42 +5,27 @@
 
 const int BTN_PIN_B = 19;
 const int BTN_PIN_Y = 26;
-
-const int LED_PIN_B = 14;
 const int LED_PIN_Y = 10;
+const int LED_PIN_B = 14;
 
-//flag de interrupcao 
-volatile bool btn_b_press = false;
-volatile bool btn_y_press = false;
-
-//flags dos timers repetitivos 
-volatile bool pisca_b = false;
+volatile bool btn_press_y = false;
+volatile bool btn_press_b = false;
 volatile bool pisca_y = false;
-
-//flags setadas pelos alarmes
-volatile bool alarme_b = false;
+volatile bool pisca_b = false;
 volatile bool alarme_y = false;
+volatile bool alarme_b = false;
 
-//impede um novo clique de botao antes de outra sequencia
-volatile bool ocupado = false;
+repeating_timer_t time_b;
+repeating_timer_t time_y;
 
-repeating_timer_t timer_b;
-repeating_timer_t timer_y;
+bool encadeado_y = false;
+bool encadeado_b = false;
 
 void btn_callback(uint gpio, uint32_t events) {
     if (events == 0x4) {
-        if (gpio == BTN_PIN_B) {
-            btn_b_press = true;
-        }
-        if (gpio == BTN_PIN_Y){
-             btn_y_press = true;
-        }
+        if (gpio == BTN_PIN_Y) btn_press_y = true;
+        if (gpio == BTN_PIN_B) btn_press_b = true;
     }
-}
-
-bool timer_b_callback(repeating_timer_t *rt) {
-    pisca_b = true;
-    return true; //manter timer repetitivo
 }
 
 bool timer_y_callback(repeating_timer_t *rt) {
@@ -48,13 +33,18 @@ bool timer_y_callback(repeating_timer_t *rt) {
     return true;
 }
 
-int64_t alarm_b_callback(alarm_id_t id, void *user_data) {
-    alarme_b = true;
-    return 0; //return 0 não repetir
+bool timer_b_callback(repeating_timer_t *rt) {
+    pisca_b = true;
+    return true;
 }
 
 int64_t alarm_y_callback(alarm_id_t id, void *user_data) {
     alarme_y = true;
+    return 0;
+}
+
+int64_t alarm_b_callback(alarm_id_t id, void *user_data) {
+    alarme_b = true;
     return 0;
 }
 
@@ -73,104 +63,77 @@ int main() {
 
     gpio_init(LED_PIN_B);
     gpio_set_dir(LED_PIN_B, GPIO_OUT);
+
     gpio_init(LED_PIN_Y);
     gpio_set_dir(LED_PIN_Y, GPIO_OUT);
 
-    bool led_b = false;
-    bool led_y = false;
+    bool led_estado_b = false;
+    bool led_estado_y = false;
 
     while (1) {
 
-        //só entra se o botao azul for precionado e se nao tiver mais nenhuma sequencia
-        if (btn_b_press && !ocupado) { 
-            btn_b_press = false;
-            ocupado = true;
-            led_b = false;
-
-            // Fase 1: LED azul pisca por 2s a 2Hz (toggle a cada 250ms)
-            // Timer repetitivo a cada 250ms → toggle do LED = período de 500ms = 2Hz ✓
-            add_repeating_timer_ms(250, timer_b_callback, NULL, &timer_b);
-            add_alarm_in_ms(2000, alarm_b_callback, NULL, false);
-
-            //Fica preso aqui até o alarme de 2s disparar
-            while (!alarme_b) {
-                if (pisca_b) {
-                    pisca_b = false;
-                    led_b = !led_b;
-                    gpio_put(LED_PIN_B, led_b);
-                }
-            }
-            //apaga led e cancela timer
-            alarme_b = false;
-            cancel_repeating_timer(&timer_b);
-            gpio_put(LED_PIN_B, 0);
-            led_b = false;
-
-            // Fase 2: LED amarelo pisca por 1s a 5Hz (toggle a cada 100ms)
-            //Timer repetitivo a cada 100ms → toggle do LED = período de 200ms = 5Hz ✓
-            add_repeating_timer_ms(100, timer_y_callback, NULL, &timer_y);
-            add_alarm_in_ms(1000, alarm_y_callback, NULL, false);
-
-            while (!alarme_y) {
-                if (pisca_y) {
-                    pisca_y = false;
-                    led_y = !led_y;
-                    gpio_put(LED_PIN_Y, led_y);
-                }
-            }
-            alarme_y = false;
-            cancel_repeating_timer(&timer_y);
+        // === BOTÃO AMARELO: inicia LED amarelo (5Hz, 1s) ===
+        if (btn_press_y) {
+            btn_press_y = false;
+            encadeado_y = false; // amarelo iniciado por botão
+            led_estado_y = false;
             gpio_put(LED_PIN_Y, 0);
-            led_y = false;
-
-            btn_b_press = false;
-            btn_y_press = false;
-            ocupado = false;
+            add_repeating_timer_ms(100, timer_y_callback, NULL, &time_y);
+            add_alarm_in_ms(1000, alarm_y_callback, NULL, false);
         }
 
-        // === BOTÃO AMARELO: amarelo 1s → azul 2s ===
-        if (btn_y_press && !ocupado) {
-            btn_y_press = false;
-            ocupado = true;
-            led_y = false;
+        if (pisca_y) {
+            pisca_y = false;
+            led_estado_y = !led_estado_y;
+            gpio_put(LED_PIN_Y, led_estado_y);
+        }
 
-            // Fase 1: LED amarelo pisca por 1s a 5Hz (toggle a cada 100ms)
-            add_repeating_timer_ms(100, timer_y_callback, NULL, &timer_y);
-            add_alarm_in_ms(1000, alarm_y_callback, NULL, false);
-
-            while (!alarme_y) {
-                if (pisca_y) {
-                    pisca_y = false;
-                    led_y = !led_y;
-                    gpio_put(LED_PIN_Y, led_y);
-                }
-            }
+        if (alarme_y) {
             alarme_y = false;
-            cancel_repeating_timer(&timer_y);
+            cancel_repeating_timer(&time_y);
             gpio_put(LED_PIN_Y, 0);
-            led_y = false;
 
-            // Fase 2: LED azul pisca por 2s a 2Hz (toggle a cada 250ms)
-            add_repeating_timer_ms(250, timer_b_callback, NULL, &timer_b);
-            add_alarm_in_ms(2000, alarm_b_callback, NULL, false);
-
-            while (!alarme_b) {
-                if (pisca_b) {
-                    pisca_b = false;
-                    led_b = !led_b;
-                    gpio_put(LED_PIN_B, led_b);
-                }
+            if (!encadeado_y) {
+                // amarelo era o primeiro → encadeia azul
+                encadeado_b = true;
+                led_estado_b = false;
+                gpio_put(LED_PIN_B, 0);
+                add_repeating_timer_ms(250, timer_b_callback, NULL, &time_b);
+                add_alarm_in_ms(2000, alarm_b_callback, NULL, false);
             }
-            alarme_b = false;
-            cancel_repeating_timer(&timer_b);
-            gpio_put(LED_PIN_B, 0);
-            led_b = false;
+            // se encadeado_y == true, amarelo era o segundo → para tudo
+        }
 
-            btn_b_press = false;
-            btn_y_press = false;
-            ocupado = false;
+        // === BOTÃO AZUL: inicia LED azul (2Hz, 2s) ===
+        if (btn_press_b) {
+            btn_press_b = false;
+            encadeado_b = false; // azul iniciado por botão
+            led_estado_b = false;
+            gpio_put(LED_PIN_B, 0);
+            add_repeating_timer_ms(250, timer_b_callback, NULL, &time_b);
+            add_alarm_in_ms(2000, alarm_b_callback, NULL, false);
+        }
+
+        if (pisca_b) {
+            pisca_b = false;
+            led_estado_b = !led_estado_b;
+            gpio_put(LED_PIN_B, led_estado_b);
+        }
+
+        if (alarme_b) {
+            alarme_b = false;
+            cancel_repeating_timer(&time_b);
+            gpio_put(LED_PIN_B, 0);
+
+            if (!encadeado_b) {
+                // azul era o primeiro → encadeia amarelo
+                encadeado_y = true;
+                led_estado_y = false;
+                gpio_put(LED_PIN_Y, 0);
+                add_repeating_timer_ms(100, timer_y_callback, NULL, &time_y);
+                add_alarm_in_ms(1000, alarm_y_callback, NULL, false);
+            }
+            // se encadeado_b == true, azul era o segundo → para tudo
         }
     }
-
-    return 0;
 }

@@ -169,20 +169,32 @@ int main() {
 
             btn_pressionado = -1;
 
-            // espera até pressionar botão
-            while (btn_pressionado == -1) {
-                tight_loop_contents();
+            int timeout = 0;
+
+        // espera até pressionar botão (timeout de 10 segundos)
+        uint32_t inicio = to_ms_since_boot(get_absolute_time());
+
+        //timeout de 10 segundos
+        while (btn_pressionado == -1) {
+            if (to_ms_since_boot(get_absolute_time()) - inicio >= 3000) {
+                timeout = 1;
+                break; 
             }
+            tight_loop_contents();
+        }
 
-            int b = btn_pressionado;
-            btn_pressionado = -1;
+        int b = btn_pressionado;  // só lê DEPOIS de confirmar que não deu timeout
+        btn_pressionado = -1;
 
-            // verifica erro
-            if (b != sequencia[i]) {
-                acertou = 0;
-                break;
-            }
+       
 
+        if (timeout || b != sequencia[i]) {
+            acertou = 0;
+            break; // sai do for interno
+}
+
+
+           
             // feedback visual (acendeu o botão correto)
             acende_led(b);
         }
