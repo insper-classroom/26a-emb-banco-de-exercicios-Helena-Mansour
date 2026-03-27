@@ -33,6 +33,7 @@ void btn_callback(uint gpio, uint32_t events) {
     }
   }
 }
+
 int main() {
   stdio_init_all();
 
@@ -53,6 +54,7 @@ int main() {
   gpio_pull_up(BTN_PIN_G);
   gpio_set_irq_enabled_with_callback(
       BTN_PIN_G, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &btn_callback);
+      
   gpio_init(LED_PIN_Y);
   gpio_set_dir(LED_PIN_Y, GPIO_OUT);
   gpio_init(LED_PIN_B);

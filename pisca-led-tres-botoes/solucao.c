@@ -60,9 +60,13 @@ int main() {
 
   gpio_init(LED_PIN_G);
   gpio_set_dir(LED_PIN_G, GPIO_OUT);
+
+
   int led_status_y = 0;
   int led_status_b = 0;
   int led_status_g = 0;
+
+  
   while (true) {
     if(flag_btn_b){
       led_status_b = !led_status_b;
