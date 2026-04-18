@@ -140,7 +140,7 @@ int main() {
             if (btn_b == 1){
                 btn_b = 0;
 
-                gpio_put(LED_PIN_Y, 1);
+                
                 add_repeating_timer_ms(100, timer_y_callback, NULL, &time_y);
 
 
@@ -160,7 +160,7 @@ int main() {
 
             if (btn_y ==1){
                 btn_y = 0;
-                gpio_put(LED_PIN_B, 1);
+                
                 add_repeating_timer_ms(250, timer_b_callback, NULL, &time_b);
 
 
