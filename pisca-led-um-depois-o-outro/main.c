@@ -132,18 +132,14 @@ int main() {
 
         if(alarme_b){
             alarme_b = false;
-       
-
+            led_estado_b = false;
             gpio_put(LED_PIN_B, 0);
             cancel_repeating_timer(&time_b);
 
             if (btn_b == 1){
                 btn_b = 0;
-
-                
+                led_estado_y = false;
                 add_repeating_timer_ms(100, timer_y_callback, NULL, &time_y);
-
-
                 add_alarm_in_ms(1000, alarm_y_callback, NULL, false);
 
             }
@@ -153,17 +149,14 @@ int main() {
 
         if(alarme_y){
             alarme_y = false;
-       
-
             gpio_put(LED_PIN_Y, 0);
+            led_estado_y = false; 
             cancel_repeating_timer(&time_y);
 
             if (btn_y ==1){
                 btn_y = 0;
-                
+                led_estado_b = false;
                 add_repeating_timer_ms(250, timer_b_callback, NULL, &time_b);
-
-
                 add_alarm_in_ms(2000, alarm_b_callback, NULL, false);
 
             }
