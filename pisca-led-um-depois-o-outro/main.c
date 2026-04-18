@@ -112,7 +112,7 @@ int main() {
 
 
             gpio_put(LED_PIN_B, 1);
-            add_repeating_timer_ms(500, timer_b_callback, NULL, &time_b);
+            add_repeating_timer_ms(250, timer_b_callback, NULL, &time_b);
 
 
             add_alarm_in_ms(2000, alarm_b_callback, NULL, false);
@@ -123,7 +123,7 @@ int main() {
             btn_press_y = false;
             btn_y = 1;
              gpio_put(LED_PIN_Y, 1);
-            add_repeating_timer_ms(200, timer_y_callback, NULL, &time_y);
+            add_repeating_timer_ms(100, timer_y_callback, NULL, &time_y);
 
 
             add_alarm_in_ms(1000, alarm_y_callback, NULL, false);
@@ -140,8 +140,9 @@ int main() {
 
             if (btn_b == 1){
                 btn_b = 0;
+
                 gpio_put(LED_PIN_Y, 1);
-                add_repeating_timer_ms(200, timer_y_callback, NULL, &time_y);
+                add_repeating_timer_ms(100, timer_y_callback, NULL, &time_y);
 
 
                 add_alarm_in_ms(1000, alarm_y_callback, NULL, false);
@@ -161,7 +162,7 @@ int main() {
             if (btn_y ==1){
                 btn_y = 0;
                 gpio_put(LED_PIN_B, 1);
-                add_repeating_timer_ms(500, timer_b_callback, NULL, &time_b);
+                add_repeating_timer_ms(250, timer_b_callback, NULL, &time_b);
 
 
                 add_alarm_in_ms(2000, alarm_b_callback, NULL, false);
