@@ -111,7 +111,6 @@ int main() {
             btn_b = 1;
 
 
-            gpio_put(LED_PIN_B, 1);
             add_repeating_timer_ms(250, timer_b_callback, NULL, &time_b);
 
 
@@ -122,7 +121,7 @@ int main() {
         if(btn_press_y){ //precionou botao verde
             btn_press_y = false;
             btn_y = 1;
-             gpio_put(LED_PIN_Y, 1);
+            
             add_repeating_timer_ms(100, timer_y_callback, NULL, &time_y);
 
 
