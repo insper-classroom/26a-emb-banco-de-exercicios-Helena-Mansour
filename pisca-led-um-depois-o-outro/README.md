@@ -13,7 +13,7 @@ Os LEDs devem piscar da seguinte maneira:
     - freq: 5Hz
     - período: 1s
 
-- Led amarelo:
+- Led azul:
     - freq: 2Hz
     - período: 2s
 
