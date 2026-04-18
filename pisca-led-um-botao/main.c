@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 
 #include "hardware/adc.h"
@@ -7,28 +8,31 @@
 
 const int BTN_PIN_G = 28;
 
-const int LED_PIN_Y = 5;
+
 const int LED_PIN_B = 9;
+const int LED_PIN_Y = 5;
 
 
-//botao amarelo precionado
-volatile bool btn_press = false;
+
+volatile bool btn_press_g= false;
 
 
 //hora do botao piscar
-volatile bool pisca_y = false;
 volatile bool pisca_b = false;
+volatile bool pisca_y = false;
 
 //tempo acabou
-volatile bool alarme_g= false;
+volatile bool alarme= false;
+
 
 
 
 void btn_callback(uint gpio, uint32_t events) {
     if(events == 0x4){ //se o botao é precionado
         if(gpio == BTN_PIN_G){
-            btn_press = true; //marca a flag
+            btn_press_g = true; //marca a flag
         }
+     
     }
 }
 
@@ -37,17 +41,17 @@ bool timer_y_callback(repeating_timer_t *rt) {
     return true;
 
 }
+
 bool timer_b_callback(repeating_timer_t *rt) {
     pisca_b = true;
     return true;
 }
 
 int64_t alarm_callback(alarm_id_t id, void *user_data) {
-    alarme_g = true;
+    alarme = true;
     return 0;
 
 }
-
 
 
 
@@ -78,8 +82,8 @@ int main() {
 
   
     while (1) {
-        if(btn_press){ //precionou botao verde
-            btn_press = false;
+        if(btn_press_g){ //precionou botao verde
+            btn_press_g = false;
 
 
             gpio_put(LED_PIN_Y, 1);
@@ -92,22 +96,26 @@ int main() {
             add_alarm_in_ms(5000, alarm_callback, NULL, false);
                    
         }
+
         if(pisca_b){
             pisca_b = false;
             led_estado_b = !led_estado_b;
             gpio_put(LED_PIN_B, led_estado_b);
-        } 
+        }
+
         if(pisca_y){
             pisca_y = false;
             led_estado_y = !led_estado_y;
             gpio_put(LED_PIN_Y, led_estado_y);
-        } 
-        if(alarme_g){
-            alarme_g = false;
+        }
+
+        if(alarme){
+            alarme = false;
+       
+
             gpio_put(LED_PIN_Y, 0);
             cancel_repeating_timer(&time_y);
         
-
         
             gpio_put(LED_PIN_B, 0);
             cancel_repeating_timer(&time_b);
