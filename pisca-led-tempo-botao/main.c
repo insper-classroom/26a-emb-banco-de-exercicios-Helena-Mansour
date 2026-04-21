@@ -20,8 +20,8 @@ volatile bool pisca = false;
 //tempo acabou
 volatile bool alarme= false;
 
-volatile absolute_time_t tempo_inicial = 0;
-volatile absolute_time_t tempo_final = 0;
+volatile absolute_time_t tempo_inicial = {0};
+volatile absolute_time_t tempo_final = {0};
 volatile int64_t tempo = 0;
 
 
@@ -83,7 +83,7 @@ int main() {
         if(btn_press){ //precionou botao verde
             btn_press = false;
 
-            tempo = (tempo_final - tempo_inicial)/1000;
+            tempo = absolute_time_diff_us(tempo_inicial,tempo_final)/1000;
 
             add_repeating_timer_ms(200, timer_callback, NULL, &time);
 
