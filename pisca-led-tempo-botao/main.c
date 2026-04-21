@@ -27,6 +27,7 @@ volatile int64_t tempo = 0;
 
 
 
+
 void btn_callback(uint gpio, uint32_t events) {
     if(events == 0x4){ //se o botao é precionado
         if(gpio == BTN_PIN_R){
