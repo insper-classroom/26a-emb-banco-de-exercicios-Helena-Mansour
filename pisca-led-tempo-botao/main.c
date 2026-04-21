@@ -81,10 +81,11 @@ int main() {
   
     while (1) {
         if(btn_press){ //precionou botao verde
+            btn_press = false;
 
             tempo = (tempo_final - tempo_inicial)/1000;
 
-            add_repeating_timer_ms(500, timer_callback, NULL, &time);
+            add_repeating_timer_ms(200, timer_callback, NULL, &time);
 
             add_alarm_in_ms(tempo, alarm_callback, NULL, false);
                    
