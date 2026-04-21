@@ -20,8 +20,8 @@ volatile bool pisca = false;
 //tempo acabou
 volatile bool alarme= false;
 
-volatile int64_t tempo_inicial = 0;
-volatile int64_t tempo_final = 0;
+volatile absolute_time_t tempo_inicial = 0;
+volatile absolute_time_t tempo_final = 0;
 volatile int64_t tempo = 0;
 
 
