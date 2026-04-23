@@ -105,8 +105,7 @@ int main() {
 
             cancel_repeating_timer(&time_g);
 
-
-            alarme_y = false;
+            //alarme_y = false;
             gpio_put(LED_PIN_Y, 0);
 
             cancel_repeating_timer(&time_y);
@@ -133,7 +132,7 @@ int main() {
 
             cancel_repeating_timer(&time_y);
 
-            alarme_g = false;
+            //alarme_g = false;
             gpio_put(LED_PIN_G, 0);
 
             cancel_repeating_timer(&time_g);
