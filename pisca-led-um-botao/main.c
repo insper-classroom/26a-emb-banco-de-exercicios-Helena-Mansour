@@ -75,7 +75,10 @@ int main() {
         if(btn_press){
             btn_press = false;
 
+            gpio_put(LED_PIN_Y, 1);
             add_repeating_timer_ms(500, timer_y_callback, NULL, &time_y);
+
+            gpio_put(LED_PIN_B, 1);
             add_repeating_timer_ms(150, timer_b_callback, NULL, &time_b);
 
             add_alarm_in_ms(1000, alarm_callback, NULL, false);
