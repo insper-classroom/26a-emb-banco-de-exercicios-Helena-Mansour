@@ -93,6 +93,8 @@ int main() {
 
             btn_press_g = false;
 
+            gpio_put(LED_PIN_G, 1);
+
             add_repeating_timer_ms(200, timer_g_callback, NULL, &time_g);
             add_alarm_in_ms(1000, alarm_callback_g, NULL, false);
          
@@ -119,6 +121,7 @@ int main() {
         if(btn_press_y){
 
             btn_press_y = false;
+            gpio_put(LED_PIN_Y, 1);
 
             add_repeating_timer_ms(500, timer_y_callback, NULL, &time_y);
             add_alarm_in_ms(2000, alarm_callback_y, NULL, false);

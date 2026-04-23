@@ -81,7 +81,7 @@ int main() {
             gpio_put(LED_PIN_B, 1);
             add_repeating_timer_ms(150, timer_b_callback, NULL, &time_b);
 
-            add_alarm_in_ms(1000, alarm_callback, NULL, false);
+            add_alarm_in_ms(5000, alarm_callback, NULL, false);
          
         }
         if (alarme){
