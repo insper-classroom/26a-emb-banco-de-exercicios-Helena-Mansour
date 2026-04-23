@@ -33,7 +33,7 @@ void btn_callback(uint gpio, uint32_t events) {
         if(gpio == BTN_PIN_R){
             tempo_inicial = get_absolute_time();
             gpio_put(LED_PIN_R, 0);
-            cancel_repeating_timer(&time);
+            //cancel_repeating_timer(&time);
         }
         
     }
