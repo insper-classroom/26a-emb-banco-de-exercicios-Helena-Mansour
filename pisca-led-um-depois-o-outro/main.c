@@ -96,7 +96,7 @@ int main() {
             y=1;
             btn_press_y = false;
 
-            add_repeating_timer_ms(500, timer_y_callback, NULL, &time_y);
+            add_repeating_timer_ms(100, timer_y_callback, NULL, &time_y);
             add_alarm_in_ms(1000, alarm_callback_y, NULL, false);
          
         }
@@ -109,7 +109,7 @@ int main() {
 
             if (y==1){
                 y=0;
-                add_repeating_timer_ms(100, timer_b_callback, NULL, &time_b);
+                add_repeating_timer_ms(250, timer_b_callback, NULL, &time_b);
                 add_alarm_in_ms(2000, alarm_callback_b, NULL, false);
             }
 
@@ -122,7 +122,7 @@ int main() {
             
             btn_press_b = false;
 
-            add_repeating_timer_ms(100, timer_b_callback, NULL, &time_b);
+            add_repeating_timer_ms(250, timer_b_callback, NULL, &time_b);
             add_alarm_in_ms(2000, alarm_callback_b, NULL, false);
          
         }
@@ -136,7 +136,7 @@ int main() {
 
             if (b==1){
                 b = 0;
-                add_repeating_timer_ms(500, timer_y_callback, NULL, &time_y);
+                add_repeating_timer_ms(100, timer_y_callback, NULL, &time_y);
                 add_alarm_in_ms(1000, alarm_callback_y, NULL, false);
 
             }
