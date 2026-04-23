@@ -18,9 +18,6 @@ volatile bool btn_press_y= false;
 volatile bool alarme_y= false;
 volatile bool alarme_b= false;
 
-volatile bool pisca_b = false;
-volatile bool pisca_y = false;
-
 volatile bool led_estado_y = false;
 volatile bool led_estado_b = false;
 
@@ -43,7 +40,6 @@ bool timer_y_callback(repeating_timer_t *rt) {
 }
 
 bool timer_b_callback(repeating_timer_t *rt) {
-   
     led_estado_b = !led_estado_b;
     gpio_put(LED_PIN_B, led_estado_b);
     return true;
@@ -100,7 +96,7 @@ int main() {
         if(btn_press_y){
             y=1;
             btn_press_y = false;
-
+            led_estado_y = true;
             gpio_put(LED_PIN_Y, 1);
 
             add_repeating_timer_ms(100, timer_y_callback, NULL, &time_y);
@@ -109,17 +105,13 @@ int main() {
         }
         if (alarme_y){
             alarme_y = false;
-            gpio_put(LED_PIN_Y, 0);
             cancel_repeating_timer(&time_y);
-
-            pisca_y = false;
             led_estado_y = false;
+            gpio_put(LED_PIN_Y, 0);
 
             if (y==1){
                 y=0;
-                pisca_b = false;
-                led_estado_b = false;
-
+                led_estado_b = true;
                 gpio_put(LED_PIN_B, 1);
                 add_repeating_timer_ms(250, timer_b_callback, NULL, &time_b);
                 add_alarm_in_ms(2000, alarm_callback_b, NULL, false);
@@ -131,9 +123,8 @@ int main() {
 
         if(btn_press_b){
             b=1;
-
-            
             btn_press_b = false;
+            led_estado_b = true;
 
             gpio_put(LED_PIN_B, 1);
 
@@ -143,22 +134,15 @@ int main() {
         }
         if (alarme_b){
             alarme_b = false;
-            pisca_b = false;
+            cancel_repeating_timer(&time_b);
             led_estado_b = false;
-
+            gpio_put(LED_PIN_B, 0);
             
 
-            gpio_put(LED_PIN_B, 0);
-
-            cancel_repeating_timer(&time_b);
-
             if (b==1){
-
                 b = 0;
-                pisca_y = false;
-                led_estado_y = false;
-
-                
+                led_estado_y = true;
+                gpio_put(LED_PIN_Y, 1);
                 add_repeating_timer_ms(100, timer_y_callback, NULL, &time_y);
                 add_alarm_in_ms(1000, alarm_callback_y, NULL, false);
 
