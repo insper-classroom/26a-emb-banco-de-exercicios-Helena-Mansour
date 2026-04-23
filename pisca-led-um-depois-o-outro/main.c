@@ -104,13 +104,16 @@ int main() {
         }
         if (alarme_y){
             alarme_y = false;
-           
             gpio_put(LED_PIN_Y, 0);
-
             cancel_repeating_timer(&time_y);
+
+            pisca_y = false;
+            led_estado_y = false;
 
             if (y==1){
                 y=0;
+                pisca_b = false;
+                led_estado_b = false;
 
                 gpio_put(LED_PIN_B, 1);
                 add_repeating_timer_ms(250, timer_b_callback, NULL, &time_b);
@@ -123,6 +126,7 @@ int main() {
 
         if(btn_press_b){
             b=1;
+
             
             btn_press_b = false;
 
@@ -134,6 +138,9 @@ int main() {
         }
         if (alarme_b){
             alarme_b = false;
+            pisca_b = false;
+            led_estado_b = false;
+
             
 
             gpio_put(LED_PIN_B, 0);
@@ -142,6 +149,8 @@ int main() {
 
             if (b==1){
                 b = 0;
+                pisca_y = false;
+                led_estado_y = false;
 
                 gpio_put(LED_PIN_Y, 1);
                 add_repeating_timer_ms(100, timer_y_callback, NULL, &time_y);
