@@ -21,6 +21,9 @@ volatile bool alarme_b= false;
 volatile bool pisca_b = false;
 volatile bool pisca_y = false;
 
+volatile bool led_estado_y = false;
+volatile bool led_estado_b = false;
+
 void btn_callback(uint gpio, uint32_t events) {
     if(events == 0x4){ //se o botao é precionado
         if(gpio == BTN_PIN_B){
@@ -33,13 +36,16 @@ void btn_callback(uint gpio, uint32_t events) {
 }
 
 bool timer_y_callback(repeating_timer_t *rt) {
-    pisca_y = true;
+    led_estado_y = !led_estado_y;
+    gpio_put(LED_PIN_Y, led_estado_y);
     return true;
 
 }
 
 bool timer_b_callback(repeating_timer_t *rt) {
-    pisca_b = true;
+   
+    led_estado_b = !led_estado_b;
+    gpio_put(LED_PIN_B, led_estado_b);
     return true;
 }
 
@@ -84,8 +90,7 @@ int main() {
     repeating_timer_t time_b;
     repeating_timer_t time_y;
   
-    bool led_estado_y = false;
-    bool led_estado_b = false;
+    
 
     int b = 0;
     int y = 0;
@@ -148,11 +153,12 @@ int main() {
             cancel_repeating_timer(&time_b);
 
             if (b==1){
+
                 b = 0;
                 pisca_y = false;
                 led_estado_y = false;
 
-                gpio_put(LED_PIN_Y, 1);
+                
                 add_repeating_timer_ms(100, timer_y_callback, NULL, &time_y);
                 add_alarm_in_ms(1000, alarm_callback_y, NULL, false);
 
@@ -162,22 +168,9 @@ int main() {
 
         }
 
-        if(pisca_b){
-            pisca_b = false;
-            led_estado_b = !led_estado_b;
-            gpio_put(LED_PIN_B, led_estado_b);
+  
+
         }
-        if(pisca_y){
-            pisca_y = false;
-            led_estado_y = !led_estado_y;
-            gpio_put(LED_PIN_Y, led_estado_y);
-        }
-
-
-   
-        
-
-    }
     }
 
 
