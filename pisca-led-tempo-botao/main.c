@@ -79,7 +79,6 @@ int main() {
 
             tempo = absolute_time_diff_us(tempo_inicial, tempo_final)/1000;
 
-            gpio_put(LED_PIN, 1);
             add_repeating_timer_ms(200, timer_callback, NULL, &time);
 
 
