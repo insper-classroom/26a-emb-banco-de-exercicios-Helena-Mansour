@@ -1,47 +1,47 @@
-
 #include <stdio.h>
-
-#include "hardware/adc.h"
 #include "hardware/gpio.h"
 #include "pico/stdlib.h"
 
-const int BTN_PIN_Y = 26;
-const int BTN_PIN_B = 19;
+const int BTN_PIN_Y = 19;
+const int BTN_PIN_B = 20;
 
-const int LED_PIN_B = 14;
-const int LED_PIN_Y = 10;
+const int LED_PIN_B = 17;
+const int LED_PIN_Y = 14;
 
 
 volatile bool btn_press_b= false;
 volatile bool btn_press_y= false;
 
-volatile bool alarme_y= false;
 volatile bool alarme_b= false;
+volatile bool alarme_y = false;
 
-volatile bool led_estado_y = false;
-volatile bool led_estado_b = false;
+volatile bool pisca_b = false;
+volatile bool pisca_y = false;
+
+volatile bool primeiro_b = false;
+volatile bool primeiro_y = false;
 
 void btn_callback(uint gpio, uint32_t events) {
     if(events == 0x4){ //se o botao é precionado
         if(gpio == BTN_PIN_B){
             btn_press_b = true; 
+            
         }
         if(gpio == BTN_PIN_Y){
             btn_press_y = true; 
+            
         }
     }
 }
 
 bool timer_y_callback(repeating_timer_t *rt) {
-    led_estado_y = !led_estado_y;
-    gpio_put(LED_PIN_Y, led_estado_y);
+    pisca_y = true;
     return true;
 
 }
 
 bool timer_b_callback(repeating_timer_t *rt) {
-    led_estado_b = !led_estado_b;
-    gpio_put(LED_PIN_B, led_estado_b);
+    pisca_b= true;
     return true;
 }
 
@@ -86,76 +86,80 @@ int main() {
     repeating_timer_t time_b;
     repeating_timer_t time_y;
   
-    
-
-    int b = 0;
-    int y = 0;
+    bool led_estado_y = false;
+    bool led_estado_b = false;
 
   
-    while (1) {        
-        if(btn_press_y){
-            y=1;
-            btn_press_y = false;
-            led_estado_y = true;
-            gpio_put(LED_PIN_Y, 1);
-
-            add_repeating_timer_ms(100, timer_y_callback, NULL, &time_y);
-            add_alarm_in_ms(1000, alarm_callback_y, NULL, false);
-         
-        }
-        if (alarme_y){
-            alarme_y = false;
-            cancel_repeating_timer(&time_y);
-            led_estado_y = false;
-            gpio_put(LED_PIN_Y, 0);
-
-            if (y==1){
-                y=0;
-                led_estado_b = true;
-                gpio_put(LED_PIN_B, 1);
-                add_repeating_timer_ms(250, timer_b_callback, NULL, &time_b);
-                add_alarm_in_ms(2000, alarm_callback_b, NULL, false);
-            }
-
-            
-        }
-        
+    while (1) {   
 
         if(btn_press_b){
-            b=1;
             btn_press_b = false;
-            led_estado_b = true;
-
-            gpio_put(LED_PIN_B, 1);
+            primeiro_b = true;
 
             add_repeating_timer_ms(250, timer_b_callback, NULL, &time_b);
             add_alarm_in_ms(2000, alarm_callback_b, NULL, false);
          
         }
+
+        if(btn_press_y){
+            btn_press_y = false;
+            primeiro_y = true;
+
+            add_repeating_timer_ms(100, timer_y_callback, NULL, &time_y);
+            add_alarm_in_ms(1000, alarm_callback_y, NULL, false);
+         
+        }
+
         if (alarme_b){
             alarme_b = false;
-            cancel_repeating_timer(&time_b);
-            led_estado_b = false;
-            gpio_put(LED_PIN_B, 0);
-            
 
-            if (b==1){
-                b = 0;
-                led_estado_y = true;
-                gpio_put(LED_PIN_Y, 1);
+            gpio_put(LED_PIN_B, 0);
+
+            cancel_repeating_timer(&time_b);
+
+            if (primeiro_b){
+                primeiro_b = false;
+
+
                 add_repeating_timer_ms(100, timer_y_callback, NULL, &time_y);
                 add_alarm_in_ms(1000, alarm_callback_y, NULL, false);
 
-            }
 
-            
-
+            }  
+        
         }
 
-  
+        if (alarme_y){
+            alarme_y = false;
+            gpio_put(LED_PIN_Y, 0);
 
+            cancel_repeating_timer(&time_y);
+
+            if (primeiro_y){
+                primeiro_y = false;
+
+                add_repeating_timer_ms(250, timer_b_callback, NULL, &time_b);
+                add_alarm_in_ms(2000, alarm_callback_b, NULL, false);
+
+
+            } 
+
+        
         }
+
+        if(pisca_b){
+            pisca_b = false;
+            led_estado_b = !led_estado_b;
+            gpio_put(LED_PIN_B, led_estado_b);
+        }
+
+        if(pisca_y){
+            pisca_y = false;
+            led_estado_y = !led_estado_y;
+            gpio_put(LED_PIN_Y, led_estado_y);
+        }
+
+        
+
     }
-
-
-
+    }
